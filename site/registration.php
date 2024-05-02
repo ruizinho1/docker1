@@ -1,4 +1,18 @@
 <?php
+function passwordExposed($password) {
+    $hash = strtoupper(sha1($password));
+    $prefix = substr($hash, 0, 5);
+    $suffix = substr($hash, 5);
+    $response = file_get_contents("https://api.pwnedpasswords.com/range/".$prefix);
+    $hashes = explode("\r\n", $response);
+    foreach($hashes as $hash) {
+        list($hashSuffix, $count) = explode(":", $hash);
+        if($hashSuffix == $suffix) {
+            return true;
+        }
+    }
+    return false;
+}
 session_start();
 if (isset($_SESSION["user"])) {
    header("Location: index.php");
@@ -37,8 +51,12 @@ if (isset($_SESSION["user"])) {
             array_push($errors,"Password does not match");
            }
            require_once "database.php";
-           $sql = "SELECT * FROM users WHERE email = '$email'";
-           $result = mysqli_query($conn, $sql);
+           $sql = "SELECT * FROM users WHERE email = ?";
+           $stmt = mysqli_stmt_init($conn);
+           mysqli_stmt_prepare($stmt, $sql);
+           mysqli_stmt_bind_param($stmt, "s", $email);
+           mysqli_stmt_execute($stmt);
+           $result = mysqli_stmt_get_result($stmt);
            $rowCount = mysqli_num_rows($result);
            if ($rowCount>0) {
             array_push($errors,"Email already exists!");

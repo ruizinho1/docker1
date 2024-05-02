@@ -22,18 +22,33 @@ if (isset($_SESSION["user"])) {
            $email = $_POST["email"];
            $password = $_POST["password"];
             require_once "database.php";
-            $sql = "SELECT * FROM users WHERE email = '$email'";
-            $result = mysqli_query($conn, $sql);
-            $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
+            $sql = "SELECT * FROM users WHERE email = ?";
+            $stmt = mysqli_prepare($conn, $sql);
+            mysqli_stmt_bind_param($stmt, "s", $email);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $user = mysqli_fetch_assoc($result);
             if ($user) {
                 if (password_verify($password, $user["password"])) {
-                    $_SESSION["user"] = "yes";
+                    // Gerar token e data de expiração
+                    $token_autenticacao = bin2hex(random_bytes(32)); // Gera um token aleatório de 64 caracteres
+                    $data_expiracao = date('Y-m-d H:i:s', strtotime('+1 day')); // Define a expiração para 1 dia a partir de agora
+                    
+                    // Atualizar token e data de expiração no banco de dados
+                    $updateSql = "UPDATE users SET token_autenticacao = ?, data_expiracao = ? WHERE email = ?";
+                    $updateStmt = mysqli_stmt_init($conn);
+                    mysqli_stmt_prepare($updateStmt, $updateSql);
+                    mysqli_stmt_bind_param($updateStmt, "sss", $token_autenticacao, $data_expiracao, $email);
+                    mysqli_stmt_execute($updateStmt);
+                    
+                    // Definir o token na sessão
+                    $_SESSION["user"] = $token_autenticacao;
                     header("Location: index.php");
-                    die();
-                }else{
+                    exit();
+                } else {
                     echo "<div class='alert alert-danger'>Password does not match</div>";
                 }
-            }else{
+            } else {
                 echo "<div class='alert alert-danger'>Email does not match</div>";
             }
         }
@@ -42,7 +57,7 @@ if (isset($_SESSION["user"])) {
       <form action="login.php" method="post">
         <div class="form-group">
             <input type="email" placeholder="Enter Email:" name="email" class="form-control">
-        </div>
+        </div>      
         <div class="form-group">
             <input type="password" placeholder="Enter Password:" name="password" class="form-control">
         </div>
