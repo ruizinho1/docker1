@@ -2,26 +2,17 @@
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!------ Include the above in your HEAD tag ---------->
 
 <!doctype html>
 <html lang="en">
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Fonts -->
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,600" rel="stylesheet" type="text/css">
-
     <link rel="stylesheet" href="style.css">
-
     <link rel="icon" href="Favicon.png">
-
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
-
     <title>Login Form</title>
 </head>
 <body>
@@ -81,13 +72,13 @@ if(isset($_POST["recover"])) {
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';
     $mail->SMTPAuth = true;
-    $mail->Username = 'manelaugusto025@gmail.com'; // Substitua pelo seu e-mail
-    $mail->Password = 'manel12345?'; // Substitua pela sua senha
+    $mail->Username = 'manelaugusto025@gmail.com'; 
+    $mail->Password = 'manel12345?'; 
     $mail->SMTPSecure = 'tls';
     $mail->Port = 587;
 
-    $mail->setFrom('manelaugusto025@gmail.com', 'Recuperação de Senha'); // Substitua pelo seu e-mail
-    $mail->addAddress($emailAddress); // O e-mail do destinatário, que é o e-mail inserido no formulário
+    $mail->setFrom('manelaugusto025@gmail.com', 'Recuperação de Senha'); 
+    $mail->addAddress($emailAddress); 
 
     $mail->isHTML(true);
 
