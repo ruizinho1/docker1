@@ -1,4 +1,7 @@
 <?php
+require 'vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 function passwordExposed($password) {
     $hash = strtoupper(sha1($password));
@@ -88,5 +91,94 @@ function registerUser($email, $password, $passwordRepeat) {
         }
     }
 }
+function recoverPassword() {
 
+    if(isset($_POST["recover"])) {
+        if(isset($_POST["recover"])) {
+            require_once "database.php"; // Adicione isto
+            $emailAddress = isset($_POST["email"]) ? $_POST["email"] : '';
+            $token_recuperacao = bin2hex(random_bytes(50));
+            $_SESSION['token_recuperacao'] = $token_recuperacao;
+    
+            // Adicione esta parte para atualizar o token de recuperação no banco de dados
+            $sql = "UPDATE users SET token_recuperacao = ? WHERE email = ?";
+            $stmt = mysqli_prepare($conn, $sql);
+            mysqli_stmt_bind_param($stmt, "ss", $token_recuperacao, $emailAddress);
+            mysqli_stmt_execute($stmt);
+
+        $mail = new PHPMailer(true);
+
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'manelaugusto025@gmail.com'; 
+        $mail->Password = 'p a p e h y k i j e o y b i x a'; 
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+
+        $mail->setFrom('manelaugusto025@gmail.com', 'Recuperação de Senha'); 
+        $mail->addAddress($emailAddress); 
+
+        $mail->isHTML(true);
+
+        $mail->Subject = 'Redefinir sua senha';
+        $mail->Body    = "<b>Caro usuário,</b>
+        <br><br>
+        <p>Recebemos uma solicitação para redefinir sua senha.</p>
+        <p>Clique no link abaixo para redefinir sua senha:</p>
+        <a href='http://localhost/reset_password.php?token=$token_recuperacao'>Redefinir Senha</a>
+        <br><br>
+        <p>Atenciosamente,</p>
+        <b>Programando</b>";
+
+        if(!$mail->send()) {
+            echo 'A mensagem não pôde ser enviada.';
+            echo 'Erro do PHPMailer: ' . $mail->ErrorInfo;
+        } else {
+            echo 'Mensagem enviada.';
+        }
+    }
+}
+}
+function resetPassword() {
+    if(isset($_POST["reset"])){
+        include('database.php');
+        $psw = $_POST["password"];
+
+        $token_recuperacao = isset($_SESSION['token_recuperacao']) ? $_SESSION['token_recuperacao'] : '';
+        $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
+
+
+        // Verifique se o token na sessão e na URL corresponde
+        if(isset($_SESSION['token_recuperacao']) && isset($_GET['token']) && $_SESSION['token_recuperacao'] === $_GET['token']) {
+            // Token válido, continue com o processo de redefinição de senha
+            $hash = password_hash( $psw , PASSWORD_DEFAULT );
+
+            $sql = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
+            $query = mysqli_num_rows($sql);
+            $fetch = mysqli_fetch_assoc($sql);
+
+            if($email){
+                $new_pass = $hash;
+                mysqli_query($conn, "UPDATE users SET password='$new_pass' WHERE email='$email'");
+                ?>
+                <script>
+                    window.location.replace("index.php");
+                    alert("<?php echo "your password has been succesful reset"?>");
+                </script>
+                <?php
+            }else{
+                ?>
+                <script>
+                    alert("<?php echo "Please try again"?>");
+                </script>
+                <?php
+            }
+        } else {
+            // Token inválido, redirecione para uma página de erro ou de login
+            header("Location: error_page.php");
+            exit; // Certifique-se de sair após o redirecionamento
+        }
+    }
+}
 ?>

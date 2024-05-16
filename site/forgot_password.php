@@ -1,4 +1,7 @@
-<?php session_start() ?>
+<?php 
+session_start(); 
+require 'controller.php'; 
+?>
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -43,7 +46,7 @@
                             </div>
 
                             <div class="col-md-6 offset-md-4">
-                                <input type="submit" value="Recuperar" name="Recuperar">
+                                <input type="submit" value="Recuperar" name="recover">
                             </div>
                     </div>
                     </form>
@@ -58,45 +61,7 @@
 </html>
 
 <?php 
-require 'vendor/autoload.php';
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
 if(isset($_POST["recover"])) {
-    $emailAddress = isset($_POST["email"]) ? $_POST["email"] : '';
-    $token_recuperacao = bin2hex(random_bytes(50));
-
-    $mail = new PHPMailer(true);
-
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'manelaugusto025@gmail.com'; 
-    $mail->Password = 'manel12345?'; 
-    $mail->SMTPSecure = 'tls';
-    $mail->Port = 587;
-
-    $mail->setFrom('manelaugusto025@gmail.com', 'Recuperação de Senha'); 
-    $mail->addAddress($emailAddress); 
-
-    $mail->isHTML(true);
-
-    $mail->Subject = 'Redefinir sua senha';
-    $mail->Body    = "<b>Caro usuário,</b>
-    <br><br>
-    <p>Recebemos uma solicitação para redefinir sua senha.</p>
-    <p>Clique no link abaixo para redefinir sua senha:</p>
-    <a href='http://localhost/reset_password.php?token=$token_recuperacao'>Redefinir Senha</a>
-    <br><br>
-    <p>Atenciosamente,</p>
-    <b>Programando com Lam</b>";
-
-    if(!$mail->send()) {
-        echo 'A mensagem não pôde ser enviada.';
-        echo 'Erro do PHPMailer: ' . $mail->ErrorInfo;
-    } else {
-        echo 'Mensagem enviada.';
-    }
+    recoverPassword(); 
 }
 ?>

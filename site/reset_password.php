@@ -1,15 +1,9 @@
-<?php session_start() ;
+<?php 
 session_start();
 include('database.php');
+require 'controller.php';
 
-// Verifique se o token na sessão e na URL corresponde
-if(isset($_SESSION['token_recuperacao']) && isset($_GET['token']) && $_SESSION['token_recuperacao'] === $_GET['token']) {
-    // Token válido, continue com o processo de redefinição de senha
-} else {
-    // Token inválido, redirecione para uma página de erro ou de login
-    header("Location: error_page.php");
-    exit; // Certifique-se de sair após o redirecionamento
-}
+resetPassword();
 ?>
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
@@ -70,39 +64,6 @@ if(isset($_SESSION['token_recuperacao']) && isset($_GET['token']) && $_SESSION['
 </main>
 </body>
 </html>
-<?php
-    if(isset($_POST["reset"])){
-        include('database.php');
-        $psw = $_POST["password"];
-
-        $token_recuperacao = $_SESSION['token_recuperacao'];
-        $email = $_SESSION['email'];
-
-        $hash = password_hash( $psw , PASSWORD_DEFAULT );
-
-        $sql = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
-        $query = mysqli_num_rows($sql);
-  	    $fetch = mysqli_fetch_assoc($sql);
-
-        if($email){
-            $new_pass = $hash;
-            mysqli_query($conn, "UPDATE users SET password='$new_pass' WHERE email='$email'");
-            ?>
-            <script>
-                window.location.replace("index.php");
-                alert("<?php echo "your password has been succesful reset"?>");
-            </script>
-            <?php
-        }else{
-            ?>
-            <script>
-                alert("<?php echo "Please try again"?>");
-            </script>
-            <?php
-        }
-    }
-
-?>
 <script>
     const toggle = document.getElementById('togglePassword');
     const password = document.getElementById('password');
@@ -116,4 +77,3 @@ if(isset($_SESSION['token_recuperacao']) && isset($_GET['token']) && $_SESSION['
         this.classList.toggle('bi-eye');
     });
 </script>
-
