@@ -19,7 +19,7 @@
     <div class="error-message">
         <h1>Oops!</h1>
         <p>Algo deu errado. Por favor, tente novamente.</p>
-        <a href="forgot_password.php">Voltar para a página inicial</a>
+        <a href="reset_password.php">Voltar para a página inicial</a>
     </div>
 </body>
 </html>

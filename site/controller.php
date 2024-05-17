@@ -91,23 +91,25 @@ function registerUser($email, $password, $passwordRepeat) {
         }
     }
 }
-function recoverPassword() {
 
+function recoverPassword() {
     if(isset($_POST["recover"])) {
-        if(isset($_POST["recover"])) {
-            require_once "database.php"; // Adicione isto
-            $emailAddress = isset($_POST["email"]) ? $_POST["email"] : '';
-            $token_recuperacao = bin2hex(random_bytes(50));
-            $_SESSION['token_recuperacao'] = $token_recuperacao;
-    
-            // Adicione esta parte para atualizar o token de recuperação no banco de dados
-            $sql = "UPDATE users SET token_recuperacao = ? WHERE email = ?";
-            $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "ss", $token_recuperacao, $emailAddress);
-            mysqli_stmt_execute($stmt);
+        require_once "database.php";
+        $emailAddress = isset($_POST["email"]) ? $_POST["email"] : '';
+        $token_recuperacao = bin2hex(random_bytes(50));
+        $_SESSION['token_recuperacao'] = $token_recuperacao;
+        $_SESSION['email'] = $emailAddress;  // Store email in session for later use
+
+        $sql = "UPDATE users SET token_recuperacao = ? WHERE email = ?";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "ss", $token_recuperacao, $emailAddress);
+        if(mysqli_stmt_execute($stmt)) {
+            echo "Token de recuperação atualizado com sucesso.";
+        } else {
+            echo "Erro ao atualizar o token de recuperação: " . mysqli_error($conn);
+        }
 
         $mail = new PHPMailer(true);
-
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
@@ -115,12 +117,9 @@ function recoverPassword() {
         $mail->Password = 'p a p e h y k i j e o y b i x a'; 
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-
         $mail->setFrom('manelaugusto025@gmail.com', 'Recuperação de Senha'); 
         $mail->addAddress($emailAddress); 
-
         $mail->isHTML(true);
-
         $mail->Subject = 'Redefinir sua senha';
         $mail->Body    = "<b>Caro usuário,</b>
         <br><br>
@@ -139,45 +138,30 @@ function recoverPassword() {
         }
     }
 }
-}
+
 function resetPassword() {
     if(isset($_POST["reset"])){
-        include('database.php');
+        require_once "database.php";
         $psw = $_POST["password"];
-
-        $token_recuperacao = isset($_SESSION['token_recuperacao']) ? $_SESSION['token_recuperacao'] : '';
+        $token_recuperacao = isset($_GET['token']) ? $_GET['token'] : '';
         $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
 
-
-        // Verifique se o token na sessão e na URL corresponde
-        if(isset($_SESSION['token_recuperacao']) && isset($_GET['token']) && $_SESSION['token_recuperacao'] === $_GET['token']) {
+        if(isset($_SESSION['token_recuperacao']) && $token_recuperacao === $_SESSION['token_recuperacao']) {
             // Token válido, continue com o processo de redefinição de senha
-            $hash = password_hash( $psw , PASSWORD_DEFAULT );
-
-            $sql = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
-            $query = mysqli_num_rows($sql);
-            $fetch = mysqli_fetch_assoc($sql);
-
-            if($email){
-                $new_pass = $hash;
-                mysqli_query($conn, "UPDATE users SET password='$new_pass' WHERE email='$email'");
-                ?>
-                <script>
-                    window.location.replace("index.php");
-                    alert("<?php echo "your password has been succesful reset"?>");
-                </script>
-                <?php
-            }else{
-                ?>
-                <script>
-                    alert("<?php echo "Please try again"?>");
-                </script>
-                <?php
+            $hash = password_hash($psw, PASSWORD_DEFAULT);
+            if(mysqli_query($conn, "UPDATE users SET password='$hash' WHERE email='$email'")) {
+                unset($_SESSION['token_recuperacao']);
+                unset($_SESSION['email']);
+                echo "Senha redefinida com sucesso.";
+                header("Location: index.php");
+                exit();
+            } else {
+                echo "Erro ao redefinir a senha: " . mysqli_error($conn);
             }
         } else {
             // Token inválido, redirecione para uma página de erro ou de login
             header("Location: error_page.php");
-            exit; // Certifique-se de sair após o redirecionamento
+            exit();
         }
     }
 }
