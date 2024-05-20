@@ -2,7 +2,7 @@
 ob_start();
 session_start();
 if (isset($_SESSION["user"])) {
-   header("Location: index.php");
+   header("Location: http://localhost:8080/"); // Alterado para o caminho do seu framework Yii
 }
 require_once "controller.php";
 ?>
